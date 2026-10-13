@@ -17,3 +17,7 @@ ChatScope application and independently implemented Windows reader: MIT; see LIC
 The independently written reader was informed by published database schemas and WCDB cache / SQLCipher validation techniques from https://github.com/raclen/wechat-suite (MIT) and https://github.com/LifeArchiveProject/WeChatDataAnalysis . No native WeFlow / EchoTrace binary is included. Neither project is required to be installed by the user.
 
 EchoTrace and WeFlow were evaluated as possible integration sources: https://github.com/ycccccccy/echotrace and https://github.com/hicccc77/WeFlow . Their private/missing native components are not part of this distribution.
+
+## Windows installer
+
+The EXE installer uses Inno Setup 7.1.0. Its original license is included in docs/Inno-Setup-LICENSE.txt and installed under licenses/Inno-Setup-LICENSE.txt. The installer wraps the unchanged v0.1.1 application payload; scripts are supplied in the repository and in ChatScope-installer-source.zip.

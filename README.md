@@ -17,7 +17,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/wyykkk-sudo/ChatScope/releases/download/v0.1.1/ChatScope-Windows-x64.zip"><b>⬇ 下载 Windows 免安装版</b></a>
+  <a href="https://github.com/wyykkk-sudo/ChatScope/releases/download/v0.1.1/ChatScope-Setup-0.1.1-x64.exe"><b>⬇ 下载 Windows EXE 安装版</b></a>
+  &nbsp; · &nbsp; <a href="https://github.com/wyykkk-sudo/ChatScope/releases/download/v0.1.1/ChatScope-Windows-x64.zip">免安装 ZIP</a>
   &nbsp; · &nbsp; <a href="#-快速开始">快速开始</a>
   &nbsp; · &nbsp; <a href="#-markdown-回复">Markdown 回复</a>
   &nbsp; · &nbsp; <a href="#-数据与隐私">数据与隐私</a>
@@ -72,15 +73,17 @@
 
 ## 🚀 快速开始
 
-### 1. 下载并解压
+### 1. 下载并安装
 
-从 [v0.1.1 Release](https://github.com/wyykkk-sudo/ChatScope/releases/tag/v0.1.1) 下载 **`ChatScope-Windows-x64.zip`**，将整个压缩包解压到一个可写文件夹。
+下载 **[ChatScope-Setup-0.1.1-x64.exe](https://github.com/wyykkk-sudo/ChatScope/releases/download/v0.1.1/ChatScope-Setup-0.1.1-x64.exe)**，双击后按提示安装。安装版为当前 Windows 用户安装，无需管理员权限，并提供桌面和开始菜单入口。
 
-免安装包内置运行环境，使用时不需要安装 Node.js、Python、ChatLab 或额外导出工具。请保留完整软件文件夹。
+也可从 [v0.1.1 Release](https://github.com/wyykkk-sudo/ChatScope/releases/tag/v0.1.1) 下载免安装 ZIP，将整个压缩包解压到可写文件夹。
+
+两种版本均内置运行环境，不需要另行安装 Node.js、Python、ChatLab 或导出工具。安装、升级与数据保留说明见 [安装指南](docs/INSTALLATION.md)。
 
 ### 2. 打开微信，再打开 ChatScope
 
-登录 **Windows 微信 4.x**，双击 **`ChatScope.exe`**。
+登录 **Windows 微信 4.x**，从桌面或开始菜单启动 **ChatScope**；免安装版直接双击 **`ChatScope.exe`**。
 
 首次连接可能需要 **1–3 分钟**，之后会复用由当前 Windows 账户加密保护的读取配置。软件未发现已登录微信时会定期重试，也可点击左侧 **↻**。
 

@@ -4,7 +4,7 @@ const net=require('node:net');
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 (async()=>{
  const port=await new Promise(r=>{const s=net.createServer();s.listen(0,'127.0.0.1',()=>{const p=s.address().port;s.close(()=>r(p))})});
- const child=spawn(path.resolve(__dirname,'../outputs/ChatScope/ChatScope.exe'),[`--remote-debugging-port=${port}`],{windowsHide:true,stdio:'ignore',env:{...process.env,CHATSCOPE_QA:'1',CHATSCOPE_QA_FILE:path.join(__dirname,'chatscope-src/demo/group.json'),CHATSCOPE_DATA:path.join(__dirname,'qa-packed-window')}});
+ const child=spawn(process.env.CHATSCOPE_QA_EXE || path.resolve(__dirname,'../outputs/ChatScope/ChatScope.exe'),[`--remote-debugging-port=${port}`],{windowsHide:true,stdio:'ignore',env:{...process.env,CHATSCOPE_QA:'1',CHATSCOPE_QA_FILE:path.join(__dirname,'chatscope-src/demo/group.json'),CHATSCOPE_DATA:process.env.CHATSCOPE_QA_DATA || path.join(__dirname,'qa-packed-window')}});
  let socket;
  try{
   let target;

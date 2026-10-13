@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "installerVersion": "0.1.1",
+  "installerCompiler": "Inno Setup 7.1.0 x64",
+  "payloadMatchesRelease": true,
+  "installedAppLaunches": true,
+  "chatlabImportAndStatistics": true,
+  "markdownRenders": true,
+  "uninstallRemovesProgram": true,
+  "uninstallPreservesData": true,
+  "testData": "fictional records and isolated install directory",
+  "bytes": 201146649,
+  "sha256": "7a86065a2330faa828ce279ec9b6b1a01ec6f3ca50d273fbbe9768fb3c75daf3"
+}
