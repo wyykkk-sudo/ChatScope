@@ -1,0 +1,70 @@
+{
+  "application": "ChatScope 0.1.1",
+  "platform": "Windows x64",
+  "chatlab": "0.37.5",
+  "electron": "39.2.7",
+  "node": "24.16.0",
+  "python": "3.12.10",
+  "markdown": {
+    "marked": "18.1.1",
+    "dompurify": "3.4.17"
+  },
+  "tests": {
+    "engine-test-result.json": {
+      "tests": "passed",
+      "count": 912,
+      "members": 4,
+      "dedup": true,
+      "dateFilter": true,
+      "toolRoundTrip": true,
+      "model": "local mock endpoint; no cloud API called"
+    },
+    "ui-test-result.json": {
+      "passed": true,
+      "statistics": 912,
+      "members": 4,
+      "model": "local mock only",
+      "citations": true,
+      "search": true,
+      "markdown": {
+        "headings": true,
+        "emphasis": true,
+        "tables": true,
+        "lists": true,
+        "quotes": true,
+        "code": true,
+        "copy": true,
+        "links": true,
+        "unsafeHtmlRemoved": true,
+        "codeCitationsPreserved": true
+      }
+    },
+    "portable-test-result.json": {
+      "passed": true,
+      "sessionCount": 379,
+      "groups": 49,
+      "verifiedDatabases": 5,
+      "contentsExported": false,
+      "modelCalled": false
+    },
+    "packaged-window-test-result.json": {
+      "passed": true,
+      "archiveLoaded": true,
+      "count": 912,
+      "members": 4,
+      "markdownBundled": true
+    }
+  },
+  "cloudModelTested": false,
+  "privateDataBundled": false,
+  "artifacts": {
+    "ChatScope-Windows-x64.zip": {
+      "bytes": 235973887,
+      "sha256": "b39a70745207b648e0d8073244480739f077dfce011f0a724d6f8bc19cf2cdca"
+    },
+    "ChatScope-source.zip": {
+      "bytes": 6212287,
+      "sha256": "6ea3b1d2bef500adec825b1c92fffbe256372f57839c52bca64c3194e0c4ce81"
+    }
+  }
+}

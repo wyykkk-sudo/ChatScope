@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "chatlab-cli": "^0.37.5"
+  }
+}

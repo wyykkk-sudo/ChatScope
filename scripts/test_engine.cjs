@@ -1,0 +1,58 @@
+const path = require('node:path');
+const fs = require('node:fs');
+const assert = require('node:assert/strict');
+const http = require('node:http');
+const { Engine } = require('./chatscope-src/lib/engine.cjs');
+const root = path.resolve(__dirname);
+const engine = new Engine({ runtime: path.join(root, 'runtime'), data: path.join(root, 'qa-engine'), helper: { exe: path.join(root, 'reader-build', 'ChatScopeReader', 'ChatScopeReader.exe') } });
+let server;
+(async () => {
+  await engine.start();
+  console.log('PASS: real ChatLab backend starts with isolated storage and auth');
+  const fixture = path.join(root, 'chatscope-src', 'demo', 'group.json');
+  await engine.importFile(fixture, 'fixture_group');
+  const data = await engine.statistics('fixture_group', {});
+  assert.equal(data.total, 912);
+  assert.equal(data.members, 4);
+  await engine.importFile(fixture, 'fixture_group');
+  assert.equal((await engine.statistics('fixture_group', {})).total, 912);
+  const dates = { start: 1782867600, end: 1783299599 };
+  const ranged = await engine.statistics('fixture_group', dates);
+  assert.ok(ranged.total > 0 && ranged.total < 912);
+  const searches = await engine.messages('fixture_group', {}, '待办', 60);
+  assert.ok(searches.length && searches.every(m => m.content.includes('待办')));
+  const context = await engine.context('fixture_group', searches[0].id, {});
+  assert.ok(context.some(m => m.id === searches[0].id));
+  console.log('PASS: actual import, duplicate protection, date filtering, search and evidence context');
+  await engine.importFile(path.join(root, 'qa-reader', 'selected-group.jsonl'), 'reader_fixture');
+  assert.equal((await engine.statistics('reader_fixture', {})).total, 2);
+  assert.equal((await engine.statistics('reader_fixture', {})).members, 2);
+  assert.equal((await engine.messages('reader_fixture', {}, '待办', 10))[0].content, '周五核对待办');
+  await engine.importFile(path.join(root, 'qa-reader', 'selected-group.jsonl'), 'reader_fixture');
+  assert.equal((await engine.statistics('reader_fixture', {})).total, 2);
+  console.log('PASS: reader JSONL -> ChatLab import, sender identity and stable duplicate protection');
+  let requests = 0;
+  server = http.createServer(async (req, res) => {
+    let input = ''; for await (const chunk of req) input += chunk;
+    const body = JSON.parse(input);
+    assert.ok(!input.includes('API_REAL_SECRET'));
+    requests++;
+    let message;
+    if (!body.messages.some(m => m.role === 'tool')) message = { role: 'assistant', content: null, tool_calls: [{ id: 'test_search_1', type: 'function', function: { name: 'search_messages', arguments: '{"keyword":"待办"}' } }] };
+    else {
+      const result = JSON.parse(body.messages.find(m => m.role === 'tool').content);
+      assert.ok(result.total > 0 && result.messages.length > 0);
+      assert.ok(result.messages.every(m => m.content.includes('待办')));
+      message = { role: 'assistant', content: `记录里明确提到了整理问题清单和检查导入流程。[#${result.messages[0].id}]` };
+    }
+    res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ choices: [{ message }] }));
+  });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  engine.saveSettings({ endpoint: `http://127.0.0.1:${server.address().port}/v1`, model: 'local-contract-test', redact: true, cloudAllowed: false });
+  const answer = await engine.ask({ session: 'fixture_group', question: '有什么待办？', filter: {}, history: [] });
+  assert.equal(requests, 2); assert.ok(answer.references.length > 0); assert.equal(answer.coverage, 912);
+  assert.ok(engine.redact('联系 13800138000 a@example.com').includes('[手机号]'));
+  assert.throws(() => engine.saveSettings({ endpoint: 'http://example.com/v1', model: 'x' }));
+  console.log('PASS: model tool call -> real ChatLab search -> referenced answer; redaction and endpoint guard');
+  fs.writeFileSync(path.join(root, 'engine-test-result.json'), JSON.stringify({ tests: 'passed', count: 912, members: 4, dedup: true, dateFilter: true, toolRoundTrip: true, model: 'local mock endpoint; no cloud API called' }));
+})().catch(error => { console.error(error); process.exitCode = 1; }).finally(() => { server?.close(); engine.stop(); });

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="360" viewBox="0 0 1280 360">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#142f28"/><stop offset="1" stop-color="#325745"/></linearGradient>
+    <linearGradient id="card" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f8fbef"/><stop offset="1" stop-color="#d5e6c4"/></linearGradient>
+  </defs>
+  <rect width="1280" height="360" rx="24" fill="url(#bg)"/>
+  <circle cx="1210" cy="5" r="280" fill="#819f71" opacity=".09"/>
+  <circle cx="1040" cy="340" r="185" fill="#cedfb3" opacity=".05"/>
+  <rect x="72" y="75" width="68" height="68" rx="19" fill="#d9ebae"/>
+  <circle cx="106" cy="109" r="22" fill="none" stroke="#1c3c2d" stroke-width="2"/><circle cx="106" cy="109" r="16" fill="#1c3c2d"/><circle cx="115" cy="100" r="4" fill="#d9ebae"/>
+  <text x="163" y="123" fill="#f5f8eb" font-size="46" font-family="Segoe UI,Arial,sans-serif" font-weight="700" letter-spacing="-1.5">ChatScope</text>
+  <text x="73" y="207" fill="#f3f7e9" font-size="31" font-family="Microsoft YaHei,Segoe UI,sans-serif" font-weight="600">从一段聊天开始，看见更多。</text>
+  <text x="75" y="252" fill="#a9c0ac" font-size="17" font-family="Microsoft YaHei,Segoe UI,sans-serif">微信记录 · 本地分析 · AI 问答 · 原文可查</text>
+  <rect x="75" y="287" width="124" height="28" rx="14" fill="#cce0a6"/>
+  <text x="137" y="306" text-anchor="middle" fill="#294c35" font-size="12" font-family="Segoe UI,Microsoft YaHei,sans-serif">Windows 免安装</text>
+  <g transform="translate(770 71)">
+    <rect x="10" y="15" width="375" height="225" rx="19" fill="#091f17" opacity=".3"/>
+    <rect width="375" height="225" rx="16" fill="url(#card)"/>
+    <rect x="0" y="0" width="87" height="225" rx="16" fill="#1b3930"/>
+    <path d="M70 0h17v225H70z" fill="#1b3930"/>
+    <circle cx="24" cy="24" r="5" fill="#d9ebae"/><rect x="37" y="20" width="34" height="7" rx="3" fill="#9bb69d"/>
+    <rect x="14" y="58" width="60" height="28" rx="6" fill="#3d5e49"/><rect x="14" y="99" width="60" height="21" rx="5" fill="#2a483b"/><rect x="14" y="133" width="60" height="21" rx="5" fill="#2a483b"/>
+    <text x="108" y="33" fill="#436342" font-size="13" font-family="Microsoft YaHei,sans-serif">和这段聊天聊聊</text>
+    <rect x="142" y="52" width="205" height="35" rx="9" fill="#e3edda"/>
+    <text x="157" y="74" fill="#5c7d52" font-size="11" font-family="Microsoft YaHei,sans-serif">之前说好的计划是什么？</text>
+    <text x="109" y="117" fill="#294f37" font-size="14" font-weight="600" font-family="Microsoft YaHei,sans-serif">计划与约定</text>
+    <rect x="109" y="134" width="170" height="6" rx="3" fill="#96b38a"/><rect x="109" y="150" width="214" height="6" rx="3" fill="#b3c8a6"/>
+    <rect x="109" y="179" width="71" height="24" rx="6" fill="#2c7157"/>
+    <text x="144" y="196" text-anchor="middle" fill="#f2f8eb" font-size="10" font-family="Microsoft YaHei,sans-serif">查看原文 ↗</text>
+  </g>
+</svg>

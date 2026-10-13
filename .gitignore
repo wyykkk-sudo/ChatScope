@@ -1,0 +1,15 @@
+work/
+outputs/
+node_modules/
+data/
+__pycache__/
+*.pyc
+*.db
+*.db-*
+*.sqlite*
+*.log
+*.bin
+settings.json
+sync.json
+.env
+.env.*
