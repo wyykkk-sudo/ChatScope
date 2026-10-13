@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/wyykkk-sudo/ChatScope/releases/tag/v0.1.1"><img alt="当前测试版" src="https://img.shields.io/badge/Release-v0.1.1%20Preview-286c58?style=flat-square"></a>
+  <a href="https://github.com/wyykkk-sudo/ChatScope/releases/tag/v0.1.2"><img alt="当前测试版" src="https://img.shields.io/badge/Release-v0.1.2%20Preview-286c58?style=flat-square"></a>
   <img alt="Windows x64" src="https://img.shields.io/badge/Windows-x64-365b49?style=flat-square&logo=windows">
   <img alt="微信 4.x" src="https://img.shields.io/badge/微信-4.x-7c9f78?style=flat-square">
   <img alt="DeepSeek / 兼容接口" src="https://img.shields.io/badge/AI-DeepSeek%20%2F%20兼容接口-548274?style=flat-square">
@@ -17,8 +17,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/wyykkk-sudo/ChatScope/releases/download/v0.1.1/ChatScope-Setup-0.1.1-x64.exe"><b>⬇ 下载 Windows EXE 安装版</b></a>
-  &nbsp; · &nbsp; <a href="https://github.com/wyykkk-sudo/ChatScope/releases/download/v0.1.1/ChatScope-Windows-x64.zip">免安装 ZIP</a>
+  <a href="https://github.com/wyykkk-sudo/ChatScope/releases/download/v0.1.2/ChatScope-Setup-0.1.2-x64.exe"><b>⬇ 下载 Windows EXE 安装版</b></a>
+  &nbsp; · &nbsp; <a href="https://github.com/wyykkk-sudo/ChatScope/releases/download/v0.1.2/ChatScope-Windows-x64.zip">免安装 ZIP</a>
   &nbsp; · &nbsp; <a href="#-快速开始">快速开始</a>
   &nbsp; · &nbsp; <a href="#-markdown-回复">Markdown 回复</a>
   &nbsp; · &nbsp; <a href="#-数据与隐私">数据与隐私</a>
@@ -26,6 +26,10 @@
 </p>
 
 ---
+
+## 🛠️ v0.1.2 兼容修复
+
+修复 DeepSeek / 兼容接口返回的内部检索指令被显示为回答的问题。现在会自动执行检索并整理成正常回答；旧的异常回复会提示重新提问。已有安装版关闭后直接安装新版本，聊天数据和模型配置继续保留。
 
 ## ✨ 一条连续的使用流程
 
@@ -75,9 +79,9 @@
 
 ### 1. 下载并安装
 
-下载 **[ChatScope-Setup-0.1.1-x64.exe](https://github.com/wyykkk-sudo/ChatScope/releases/download/v0.1.1/ChatScope-Setup-0.1.1-x64.exe)**，双击后按提示安装。安装版为当前 Windows 用户安装，无需管理员权限，并提供桌面和开始菜单入口。
+下载 **[ChatScope-Setup-0.1.2-x64.exe](https://github.com/wyykkk-sudo/ChatScope/releases/download/v0.1.2/ChatScope-Setup-0.1.2-x64.exe)**，双击后按提示安装。安装版为当前 Windows 用户安装，无需管理员权限，并提供桌面和开始菜单入口。
 
-也可从 [v0.1.1 Release](https://github.com/wyykkk-sudo/ChatScope/releases/tag/v0.1.1) 下载免安装 ZIP，将整个压缩包解压到可写文件夹。
+也可从 [v0.1.2 Release](https://github.com/wyykkk-sudo/ChatScope/releases/tag/v0.1.2) 下载免安装 ZIP，将整个压缩包解压到可写文件夹。
 
 两种版本均内置运行环境，不需要另行安装 Node.js、Python、ChatLab 或导出工具。安装、升级与数据保留说明见 [安装指南](docs/INSTALLATION.md)。
 

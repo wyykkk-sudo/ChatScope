@@ -1,6 +1,6 @@
 {
   "passed": true,
-  "installerVersion": "0.1.1",
+  "installerVersion": "0.1.2",
   "installerCompiler": "Inno Setup 7.1.0 x64",
   "payloadMatchesRelease": true,
   "installedAppLaunches": true,
@@ -9,6 +9,18 @@
   "uninstallRemovesProgram": true,
   "uninstallPreservesData": true,
   "testData": "fictional records and isolated install directory",
-  "bytes": 201146649,
-  "sha256": "7a86065a2330faa828ce279ec9b6b1a01ec6f3ca50d273fbbe9768fb3c75daf3"
+  "bytes": 201149143,
+  "sha256": "8acae820e91f2ccfaedf63375042727a15965c5404342d3908833b09d7f30f20",
+  "upgradeFrom011PreservesDataAndSettings": true,
+  "dsmlUIRegression": {
+    "passed": true,
+    "archiveLoaded": true,
+    "count": 912,
+    "members": 4,
+    "markdownBundled": true,
+    "dsmlToolRoundTrip": true,
+    "citedAnswerRenders": true,
+    "evidenceOpens": true,
+    "oldMalformedReplyHidden": true
+  }
 }

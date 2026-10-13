@@ -25,6 +25,10 @@ function history() { const key = conversationKey(); if (!conversations.has(key))
   try { conversations.set(key, JSON.parse(localStorage.getItem('chat:' + key) || '[]')); } catch { conversations.set(key, []); }
 } return conversations.get(key); }
 function saveConversation() { try { localStorage.setItem('chat:' + conversationKey(), JSON.stringify(history().slice(-60))); } catch { toast('本地问答存储空间不足，当前对话仍可继续。'); } }
+function displayAnswer(turn) {
+  return turn.role === 'assistant' && window.chatScopeToolProtocol.hasToolMarkup(turn.content)
+    ? '这条旧回复包含未完成的检索指令。软件已更新，请重新发送原问题。' : turn.content;
+}
 function modelBadge() { $('model-badge').textContent = settings?.hasKey || settings?.endpoint?.startsWith('http://') ? settings.model : '配置模型后即可提问'; }
 function renderList() {
   const term = $('search').value.trim().toLowerCase();
@@ -154,7 +158,7 @@ function renderConversation() {
     if (turn.role === 'assistant') node.append(el('span', 'turn-label', '✦ ' + (turn.model || '聊天助手')));
     if (turn.role === 'assistant') {
       const session = selected.id, dates = filter();
-      node.append(window.renderChatMarkdown(turn.content, turn.references || [], {
+      node.append(window.renderChatMarkdown(displayAnswer(turn), turn.references || [], {
         cite: id => showEvidence(session, id, dates),
         openExternal: url => call('openExternal', { url }).catch(error => toast(error.message)),
         copy: text => call('copyText', { text }).catch(error => toast(error.message)),
@@ -211,7 +215,7 @@ document.querySelectorAll('[data-question]').forEach(button => button.onclick = 
 $('clear-chat').onclick = () => { if (!selected || busy) return; conversations.set(conversationKey(), []); saveConversation(); renderConversation(); };
 $('export-report').onclick = async () => {
   if (!selected || !currentStats) return;
-  const content = `# ${selected.name} · 聊天分析\n\n生成时间：${new Date().toLocaleString('zh-CN')}\n\n范围：${$('range').selectedOptions[0].textContent}${$('range').value === 'custom' ? ' ' + $('start').value + ' 至 ' + $('end').value : ''}\n\n消息数：${fmt(currentStats.total)}\n发言人数：${fmt(currentStats.members)}\n活跃天数：${fmt(currentStats.activeDays)}\n\n## 发言排行\n\n${currentStats.topMembers.map(m => `- ${m.name}：${fmt(m.count)} 条`).join('\n')}\n\n## 模型问答\n\n${history().map(t => `### ${t.role === 'user' ? '问题' : '回答'}\n\n${t.content}\n${t.references?.length ? '\n引用原文：\n' + t.references.map(r => `\n[#${r.id}] ${fullDate(r.timestamp)} ${r.name}\n${r.content || ''}`).join('\n') : ''}`).join('\n\n')}\n\n统计覆盖所选范围的全部本地消息；模型使用有限检索片段，请核对原文。\n`;
+  const content = `# ${selected.name} · 聊天分析\n\n生成时间：${new Date().toLocaleString('zh-CN')}\n\n范围：${$('range').selectedOptions[0].textContent}${$('range').value === 'custom' ? ' ' + $('start').value + ' 至 ' + $('end').value : ''}\n\n消息数：${fmt(currentStats.total)}\n发言人数：${fmt(currentStats.members)}\n活跃天数：${fmt(currentStats.activeDays)}\n\n## 发言排行\n\n${currentStats.topMembers.map(m => `- ${m.name}：${fmt(m.count)} 条`).join('\n')}\n\n## 模型问答\n\n${history().map(t => `### ${t.role === 'user' ? '问题' : '回答'}\n\n${displayAnswer(t)}\n${t.references?.length ? '\n引用原文：\n' + t.references.map(r => `\n[#${r.id}] ${fullDate(r.timestamp)} ${r.name}\n${r.content || ''}`).join('\n') : ''}`).join('\n\n')}\n\n统计覆盖所选范围的全部本地消息；模型使用有限检索片段，请核对原文。\n`;
   try { const result = await call('exportReport', { content }); if (result.saved) toast('报告已保存。'); } catch (error) { toast(error.message); }
 };
 (async () => { try { settings = await call('settings'); modelBadge(); await discover(); } catch (error) { status(error.message); toast(error.message); } })();

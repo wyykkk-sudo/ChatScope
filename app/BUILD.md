@@ -29,3 +29,5 @@ Use Node.js 24.16.0, Python 3.12 and Windows x64. To recreate the supplied stagi
 6. `work/qa_ui.cjs` is an Electron UI test with fictional records and a mock model. Run it with the installed Electron binary. `work/test_portable.cjs` additionally checks a running same-user WeChat installation's metadata only; this live test is optional and is not part of the synthetic tests.
 
 The original ChatLab backend is not modified. For its source build instructions, see the supplied upstream README and apps/cli/package.json. ChatScope uses the official published CLI binary as a separate local process.
+
+Protocol regression: run `node scripts/test_model_protocol.cjs` from the repository with the runtime staged in `work/runtime`, or set `CHATSCOPE_TEST_WORK` to that directory. It uses generated examples and a local mock endpoint, including DSML outputs and bounded retry checks.

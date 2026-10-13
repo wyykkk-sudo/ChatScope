@@ -1,0 +1,18 @@
+{
+  "passed": true,
+  "cases": [
+    "DSML dialects, numeric and escaped parameters",
+    "malformed, truncated and duplicate parameters never become answers",
+    "ascii: real search + context + statistics -> cited Markdown answer",
+    "double: real search + context + statistics -> cited Markdown answer",
+    "fullwidth: real search + context + statistics -> cited Markdown answer",
+    "native: real search + context + statistics -> cited Markdown answer",
+    "truncated gateway output retries once with tools disabled",
+    "unknown tool cannot execute and returns an error to the model",
+    "repeated raw tool output terminates without displaying internal instructions",
+    "repeated malformed output terminates after one retry"
+  ],
+  "backend": "real ChatLab 0.37.5",
+  "model": "local HTTP mock; no cloud API called",
+  "privateDataUsed": false
+}

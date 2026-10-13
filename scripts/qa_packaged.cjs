@@ -1,11 +1,12 @@
 const fs=require('node:fs'), path=require('node:path'), assert=require('node:assert/strict');
 const {spawn}=require('node:child_process');
 const net=require('node:net');
+const http=require('node:http');
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 (async()=>{
  const port=await new Promise(r=>{const s=net.createServer();s.listen(0,'127.0.0.1',()=>{const p=s.address().port;s.close(()=>r(p))})});
  const child=spawn(process.env.CHATSCOPE_QA_EXE || path.resolve(__dirname,'../outputs/ChatScope/ChatScope.exe'),[`--remote-debugging-port=${port}`],{windowsHide:true,stdio:'ignore',env:{...process.env,CHATSCOPE_QA:'1',CHATSCOPE_QA_FILE:path.join(__dirname,'chatscope-src/demo/group.json'),CHATSCOPE_DATA:process.env.CHATSCOPE_QA_DATA || path.join(__dirname,'qa-packed-window')}});
- let socket;
+ let socket, modelServer, modelRequests=0;
  try{
   let target;
   for(let i=0;i<150;i++){try{target=(await(await fetch(`http://127.0.0.1:${port}/json`)).json()).find(x=>x.type==='page'&&x.url.includes('app.asar'));if(target)break}catch{}await wait(150)}
@@ -21,8 +22,28 @@ const wait=ms=>new Promise(r=>setTimeout(r,ms));
   assert.equal(await run("document.getElementById('metric-members').textContent"),'4');
   const markdown=await run("(() => {const n=renderChatMarkdown('## Title\\n\\n**Bold**\\n\\n| A | B |\\n|---|---|\\n| 1 | 2 |\\n\\n[x](javascript:alert(1))',[],{cite(){},copy:async()=>{},openExternal(){}});return !!n.querySelector('h2')&&!!n.querySelector('strong')&&!!n.querySelector('table')&&!n.querySelector('a');})()");
   assert.equal(markdown,true);
-  fs.writeFileSync(path.join(__dirname,'packaged-window-test-result.json'),JSON.stringify({passed:true,archiveLoaded:true,count:912,members:4,markdownBundled:true}));
+  modelServer=http.createServer(async(req,res)=>{
+    let text='';for await(const chunk of req)text+=chunk;
+    const body=JSON.parse(text);modelRequests++;
+    let content;
+    if(!body.messages.some(m=>m.role==='tool')) content='<｜DSML｜tool_calls><｜DSML｜invoke name="search_messages"><｜DSML｜parameter name="keyword" string="true">待办</｜DSML｜parameter></｜DSML｜invoke></｜DSML｜tool_calls>';
+    else {const result=JSON.parse(body.messages.find(m=>m.role==='tool').content);content=`## 待办分析\n\n检索已完成。[#${result.messages[0].id}]`;}
+    res.writeHead(200,{'Content-Type':'application/json'});res.end(JSON.stringify({choices:[{message:{role:'assistant',content}}]}));
+  });
+  await new Promise(r=>modelServer.listen(0,'127.0.0.1',r));
+  await run(`(async()=>{settings=await call('saveSettings',{endpoint:'http://127.0.0.1:${modelServer.address().port}/v1',model:'packaged-dsml-test',redact:true,cloudAllowed:false});history().length=0;await ask('查找待办');})()`);
+  assert.equal(modelRequests,2);
+  assert.equal(await run("document.querySelector('.turn.assistant h2').textContent"),'待办分析');
+  assert.equal(await run("document.querySelectorAll('.turn.assistant .citation').length"),1);
+  assert.equal(await run("document.getElementById('ai-conversation').textContent.includes('DSML')"),false);
+  await run("history().push({role:'assistant',content:'<｜DSML｜invoke name=\"search_messages\">'});renderConversation()");
+  assert.equal(await run("document.getElementById('ai-conversation').textContent.includes('DSML')"),false);
+  assert.equal(await run("document.getElementById('ai-conversation').textContent.includes('请重新发送原问题')"),true);
+  await run("history().pop();renderConversation();document.querySelector('.citation').click()");
+  for(let i=0;i<50&&!await run("document.getElementById('evidence-dialog').open");i++)await wait(100);
+  assert.equal(await run("document.getElementById('evidence-dialog').open && document.querySelectorAll('#evidence-content .message-row').length>0"),true);
+  fs.writeFileSync(path.join(__dirname,'packaged-window-test-result.json'),JSON.stringify({passed:true,archiveLoaded:true,count:912,members:4,markdownBundled:true,dsmlToolRoundTrip:true,citedAnswerRenders:true,evidenceOpens:true,oldMalformedReplyHidden:true}));
   console.log('PASS: actual portable ChatScope.exe loads archived application, imports with bundled engine and renders correct statistics.');
   await command('Page.close');
- }finally{socket?.close();await wait(400);if(child.exitCode===null)child.kill()}
+ }finally{modelServer?.close();socket?.close();await wait(400);if(child.exitCode===null)child.kill()}
 })().catch(e=>{console.error(e);process.exitCode=1});

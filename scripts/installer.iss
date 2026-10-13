@@ -8,8 +8,8 @@
 [Setup]
 AppId=ChatScope.Desktop
 AppName=ChatScope
-AppVersion=0.1.1
-AppVerName=ChatScope 0.1.1
+AppVersion=0.1.2
+AppVerName=ChatScope 0.1.2
 AppPublisher=wyykkk-sudo
 AppPublisherURL=https://github.com/wyykkk-sudo/ChatScope
 AppSupportURL=https://github.com/wyykkk-sudo/ChatScope/issues
@@ -27,7 +27,7 @@ DisableDirPage=yes
 DisableProgramGroupPage=yes
 DisableReadyPage=yes
 OutputDir={#Destination}
-OutputBaseFilename=ChatScope-Setup-0.1.1-x64
+OutputBaseFilename=ChatScope-Setup-0.1.2-x64
 Compression=lzma2/fast
 SolidCompression=yes
 UninstallDisplayName=ChatScope
@@ -38,11 +38,11 @@ RestartApplications=no
 CreateUninstallRegKey=not IsQATest
 UsePreviousAppDir=not IsQATest
 UsePreviousTasks=not IsQATest
-VersionInfoVersion=0.1.1.0
+VersionInfoVersion=0.1.2.0
 VersionInfoCompany=wyykkk-sudo
 VersionInfoDescription=ChatScope 微信聊天分析安装程序
 VersionInfoProductName=ChatScope
-VersionInfoProductVersion=0.1.1
+VersionInfoProductVersion=0.1.2
 
 [Languages]
 Name: "chinesesimp"; MessagesFile: "compiler:Languages\ChineseSimplified.isl"
