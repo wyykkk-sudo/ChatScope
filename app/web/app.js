@@ -1,6 +1,6 @@
 const $ = id => document.getElementById(id);
 const api = window.scope;
-let items = [], selected = null, category = 'all', currentStats, settings, busy = false, connecting = false, loading = false, generation = 0, oldest, lastMessages = [], directory, reconnectTimer;
+let items = [], selected = null, category = 'all', currentStats, settings, busy = false, exporting = false, connecting = false, loading = false, generation = 0, oldest, lastMessages = [], directory, reconnectTimer;
 const conversations = new Map();
 const fmt = n => Number(n || 0).toLocaleString('zh-CN');
 const date = ts => ts ? new Date(ts * 1000).toLocaleDateString('zh-CN', { timeZone: 'Asia/Shanghai', month: '2-digit', day: '2-digit' }) : '';
@@ -62,7 +62,7 @@ async function connect(account) {
   } finally { connecting = false; $('refresh').disabled = false; }
 }
 async function discover() {
-  if (connecting || busy) return;
+  if (connecting || busy || exporting) return;
   clearTimeout(reconnectTimer);
   status('正在寻找已登录的微信…');
   try {
@@ -94,7 +94,7 @@ async function select(item) {
   selected = item; currentStats = null; $('header-name').textContent = item.name; $('session-name').textContent = item.name;
   $('session-type').textContent = item.type === 'group' ? 'GROUP CONVERSATION · 群聊分析' : 'PRIVATE CONVERSATION · 私聊分析';
   $('session-description').textContent = item.name?.includes('示例') ? '当前为虚构示例数据' : '本地记录 · ChatLab 分析 · 原文可追溯';
-  $('workspace').classList.remove('hidden'); $('welcome').classList.add('hidden'); renderList(); renderConversation(); await loadAnalysis();
+  $('workspace').classList.remove('hidden'); $('welcome').classList.add('hidden'); $('export-chat').disabled = exporting; renderList(); renderConversation(); await loadAnalysis();
 }
 async function loadAnalysis() {
   if (!selected || busy) return;
@@ -188,19 +188,19 @@ async function ask(question) {
 }
 function openSettings() {
   $('endpoint').value = settings?.endpoint || 'https://api.deepseek.com/v1'; $('model').value = settings?.model || 'deepseek-chat'; $('key').value = '';
-  $('key').placeholder = settings?.hasKey ? '密钥已加密保存；留空保留当前密钥' : '输入 API Key'; $('cloud-allowed').checked = settings?.cloudAllowed || false; $('redact').checked = settings?.redact !== false; $('settings-error').textContent = '';
-  $('provider').value = $('endpoint').value.includes('deepseek') ? 'deepseek' : $('endpoint').value.includes('11434') ? 'ollama' : 'compatible'; $('settings-dialog').showModal();
+  $('key').placeholder = settings?.hasKey ? '密钥已加密保存；留空保留当前密钥（更换服务商或 Base URL 时请重新输入）' : '输入 API Key'; $('cloud-allowed').checked = settings?.cloudAllowed || false; $('redact').checked = settings?.redact !== false; $('settings-error').textContent = '';
+  $('provider').value = settings?.provider || ($('endpoint').value.includes('anthropic') ? 'claude' : $('endpoint').value.includes('openai') ? 'openai' : $('endpoint').value.includes('deepseek') ? 'deepseek' : $('endpoint').value.includes('11434') ? 'ollama' : 'compatible'); $('settings-dialog').showModal();
 }
 async function saveSettings(test) {
   $('settings-error').textContent = ''; $('test-model').disabled = true; $('save-settings').disabled = true;
   try {
-    settings = await call('saveSettings', { endpoint: $('endpoint').value.trim(), model: $('model').value.trim(), key: $('key').value.trim(), cloudAllowed: $('cloud-allowed').checked, redact: $('redact').checked }); modelBadge(); $('key').value = '';
+    settings = await call('saveSettings', { provider: $('provider').value, endpoint: $('endpoint').value.trim(), model: $('model').value.trim(), key: $('key').value.trim(), cloudAllowed: $('cloud-allowed').checked, redact: $('redact').checked }); modelBadge(); $('key').value = '';
     if (test) { $('settings-error').textContent = '正在测试连接…'; await call('testModel'); }
     $('settings-dialog').close(); toast(test ? '模型连接成功，可以开始提问。' : '模型配置已加密保存在本机。');
   } catch (error) { $('settings-error').textContent = error.message; }
   finally { $('test-model').disabled = false; $('save-settings').disabled = false; }
 }
-$('provider').onchange = () => { const p = $('provider').value; if (p === 'deepseek') { $('endpoint').value = 'https://api.deepseek.com/v1'; $('model').value = 'deepseek-chat'; } else if (p === 'ollama') { $('endpoint').value = 'http://127.0.0.1:11434/v1'; $('model').value = 'qwen3:8b'; $('cloud-allowed').checked = false; } };
+$('provider').onchange = () => { const p = $('provider').value; if (p === 'deepseek') { $('endpoint').value = 'https://api.deepseek.com/v1'; $('model').value = 'deepseek-chat'; } else if (p === 'openai') { $('endpoint').value = 'https://api.openai.com/v1'; $('model').value = 'gpt-4.1-mini'; } else if (p === 'claude') { $('endpoint').value = 'https://api.anthropic.com'; $('model').value = 'claude-sonnet-4-5'; } else if (p === 'ollama') { $('endpoint').value = 'http://127.0.0.1:11434/v1'; $('model').value = 'qwen3:8b'; $('cloud-allowed').checked = false; } };
 $('save-settings').onclick = () => saveSettings(false); $('test-model').onclick = () => saveSettings(true); $('settings').onclick = openSettings;
 document.querySelectorAll('.close-dialog').forEach(b => b.onclick = () => b.closest('dialog').close());
 document.querySelectorAll('.filters button').forEach(button => button.onclick = () => { category = button.dataset.type; document.querySelectorAll('.filters button').forEach(b => b.classList.toggle('active', b === button)); renderList(); });
@@ -217,5 +217,20 @@ $('export-report').onclick = async () => {
   if (!selected || !currentStats) return;
   const content = `# ${selected.name} · 聊天分析\n\n生成时间：${new Date().toLocaleString('zh-CN')}\n\n范围：${$('range').selectedOptions[0].textContent}${$('range').value === 'custom' ? ' ' + $('start').value + ' 至 ' + $('end').value : ''}\n\n消息数：${fmt(currentStats.total)}\n发言人数：${fmt(currentStats.members)}\n活跃天数：${fmt(currentStats.activeDays)}\n\n## 发言排行\n\n${currentStats.topMembers.map(m => `- ${m.name}：${fmt(m.count)} 条`).join('\n')}\n\n## 模型问答\n\n${history().map(t => `### ${t.role === 'user' ? '问题' : '回答'}\n\n${displayAnswer(t)}\n${t.references?.length ? '\n引用原文：\n' + t.references.map(r => `\n[#${r.id}] ${fullDate(r.timestamp)} ${r.name}\n${r.content || ''}`).join('\n') : ''}`).join('\n\n')}\n\n统计覆盖所选范围的全部本地消息；模型使用有限检索片段，请核对原文。\n`;
   try { const result = await call('exportReport', { content }); if (result.saved) toast('报告已保存。'); } catch (error) { toast(error.message); }
+};
+const exportLimitKey = 'chatscope-export-limit-mb';
+$('export-limit').oninput = () => { $('export-error').textContent = ''; };
+$('cancel-export').onclick = () => $('export-dialog').close();
+$('export-chat').onclick = async () => {
+  if (!selected || busy || exporting) return;
+  $('export-error').textContent = ''; $('export-limit').value = localStorage.getItem(exportLimitKey) || '50'; $('export-dialog').showModal();
+};
+$('confirm-export').onclick = async () => {
+  if (!selected || busy || exporting) return;
+  const megabytes = Number($('export-limit').value);
+  if (!Number.isInteger(megabytes) || megabytes < 0 || megabytes > 2048) { $('export-error').textContent = '请输入 0–2048 之间的整数。'; return; }
+  localStorage.setItem(exportLimitKey, String(Math.floor(megabytes))); $('export-dialog').close();
+  exporting = true; $('export-chat').disabled = true; status('正在导出 ChatLab JSON 和附件…');
+  try { const result = await call('exportChat', { session: selected.id, maxAttachmentBytes: megabytes * 1024 * 1024 }); if (result.canceled) { status('已取消导出'); return; } const a = result.attachments || {}; toast(`已导出 ${fmt(result.messageCount)} 条消息；附件已复制 ${fmt(a.copied)}，加密原文件 ${fmt(a.encrypted_original)}，已跳过 ${fmt(a.skipped)}，缺失 ${fmt(a.missing)}。详情见导出清单。`); status('已导出到：' + result.directory); } catch (error) { toast(error.message); status(error.message); } finally { exporting = false; $('export-chat').disabled = false; }
 };
 (async () => { try { settings = await call('settings'); modelBadge(); await discover(); } catch (error) { status(error.message); toast(error.message); } })();

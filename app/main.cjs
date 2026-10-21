@@ -67,6 +67,14 @@ app.whenReady().then(() => {
     fs.writeFileSync(result.filePath, String(args.content || '').slice(0, 2_000_000), 'utf8');
     return { saved: true };
   });
+  handle('exportChat', async args => {
+    if (!args?.session) throw new Error('请先选择一个聊天。');
+    const result = process.env.CHATSCOPE_QA && process.env.CHATSCOPE_QA_EXPORT ? { canceled: false, filePaths: [process.env.CHATSCOPE_QA_EXPORT] } : await dialog.showOpenDialog(window, { title: '选择 ChatLab 导出文件夹', properties: ['openDirectory', 'createDirectory'] });
+    if (result.canceled) return { canceled: true };
+    const exported = await engine.exportChat(args.session, result.filePaths[0], args.maxAttachmentBytes);
+    if (!process.env.CHATSCOPE_QA) await shell.openPath(exported.directory);
+    return exported;
+  });
   ipcMain.handle('scope:cancel', () => { engine.cancel(); return { ok: true }; });
   window.loadFile(path.join(__dirname, 'web', 'index.html'));
   if (process.env.CHATSCOPE_QA) {

@@ -2,10 +2,10 @@
 
 ## 安装与使用
 
-1. 下载并双击 `ChatScope-Setup-0.1.2-x64.exe`。
+1. 下载并双击 `ChatScope-Setup-0.2.0-x64.exe`。
 2. 按提示完成安装，可选择创建桌面快捷方式。
 3. 打开并登录电脑微信，再从桌面或开始菜单启动 ChatScope。
-4. 首次在“模型设置”保存 DeepSeek / 兼容接口的 API Key。之后选择好友或群聊即可提问。
+4. 首次在“模型设置”保存 DeepSeek、OpenAI、Claude 或兼容接口的 API Key，并可编辑 Base URL。之后选择好友或群聊即可提问。
 
 支持 Windows x64、微信 4.x。安装到当前 Windows 用户的 `%LOCALAPPDATA%\Programs\ChatScope`，无需管理员权限。运行环境和聊天读取模块已经内置。
 
@@ -17,7 +17,7 @@
 
 如果之前使用的是免安装版，先关闭旧版。如需沿用配置和记录，将旧版的整个 `data` 文件夹复制到安装目录。两者需使用相同的 Windows 账户，才能解密原来保存的密钥。请不要覆盖你需要保留的另一份数据。
 
-安装包和免安装版使用同一份 v0.1.2 程序，均支持 Markdown 模型回复、代码复制和可点击的原文引用。
+安装包和免安装版使用同一份 v0.2.0 程序，均支持 ChatLab JSON 与本地附件导出、附件大小上限、Claude / OpenAI / 自定义 Base URL，以及 Markdown 回复和原文引用。
 
 ## 安装包构建
 

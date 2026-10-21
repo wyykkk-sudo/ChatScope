@@ -1,0 +1,48 @@
+{
+  "version": "0.2.0",
+  "nativeExport": {
+    "passed": true,
+    "count": 10,
+    "encryptedWal": true,
+    "selectedChatIsolation": true,
+    "voiceDatabase": true,
+    "resourceDatabase": true,
+    "legacyDatDecoded": true,
+    "encryptedDatRetained": true,
+    "sizeBoundary": true,
+    "zeroLimit": true,
+    "ipcDispatch": true,
+    "compiledReaderIpc": true
+  },
+  "modelAndImportedExport": {
+    "passed": true,
+    "tests": [
+      "native JSON imports into actual ChatLab with all media message types",
+      "imported export streams multiple pages, copies assets, blocks traversal and reimports",
+      "OpenAI custom base URLs, credentials, reasoning limits and real search roundtrip",
+      "Claude native Messages URLs, headers, merged tool results and citations",
+      "Claude tools remain declared when final synthesis disables calls",
+      "key scope and legacy migration; invalid/empty/error responses"
+    ],
+    "cloudApiTested": false,
+    "data": "synthetic fixtures and local protocol servers"
+  },
+  "installedUi": {
+    "passed": true,
+    "archiveLoaded": true,
+    "count": 912,
+    "members": 4,
+    "markdownBundled": true,
+    "dsmlToolRoundTrip": true,
+    "citedAnswerRenders": true,
+    "evidenceOpens": true,
+    "oldMalformedReplyHidden": true,
+    "providerOptions": true,
+    "customBaseUrlPersists": true,
+    "exportDialog": true,
+    "exportSizeValidation": true,
+    "exportIpc": true,
+    "exportCount": 912,
+    "exportSizePersists": true
+  }
+}

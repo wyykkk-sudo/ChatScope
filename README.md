@@ -3,10 +3,10 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/wyykkk-sudo/ChatScope/releases/tag/v0.1.2"><img alt="当前测试版" src="https://img.shields.io/badge/Release-v0.1.2%20Preview-286c58?style=flat-square"></a>
+  <a href="https://github.com/wyykkk-sudo/ChatScope/releases/tag/v0.2.0"><img alt="当前测试版" src="https://img.shields.io/badge/Release-v0.2.0%20Preview-286c58?style=flat-square"></a>
   <img alt="Windows x64" src="https://img.shields.io/badge/Windows-x64-365b49?style=flat-square&logo=windows">
   <img alt="微信 4.x" src="https://img.shields.io/badge/微信-4.x-7c9f78?style=flat-square">
-  <img alt="DeepSeek / 兼容接口" src="https://img.shields.io/badge/AI-DeepSeek%20%2F%20兼容接口-548274?style=flat-square">
+  <img alt="DeepSeek / OpenAI / Claude" src="https://img.shields.io/badge/AI-DeepSeek%20%2F%20OpenAI%20%2F%20Claude-548274?style=flat-square">
   <a href="LICENSE"><img alt="应用代码 MIT" src="https://img.shields.io/badge/应用代码-MIT-a0b587?style=flat-square"></a>
 </p>
 
@@ -17,8 +17,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/wyykkk-sudo/ChatScope/releases/download/v0.1.2/ChatScope-Setup-0.1.2-x64.exe"><b>⬇ 下载 Windows EXE 安装版</b></a>
-  &nbsp; · &nbsp; <a href="https://github.com/wyykkk-sudo/ChatScope/releases/download/v0.1.2/ChatScope-Windows-x64.zip">免安装 ZIP</a>
+  <a href="https://github.com/wyykkk-sudo/ChatScope/releases/download/v0.2.0/ChatScope-Setup-0.2.0-x64.exe"><b>⬇ 下载 Windows EXE 安装版</b></a>
+  &nbsp; · &nbsp; <a href="https://github.com/wyykkk-sudo/ChatScope/releases/download/v0.2.0/ChatScope-Windows-x64.zip">免安装 ZIP</a>
   &nbsp; · &nbsp; <a href="#-快速开始">快速开始</a>
   &nbsp; · &nbsp; <a href="#-markdown-回复">Markdown 回复</a>
   &nbsp; · &nbsp; <a href="#-数据与隐私">数据与隐私</a>
@@ -27,9 +27,9 @@
 
 ---
 
-## 🛠️ v0.1.2 兼容修复
+## 🛠️ v0.2.0 · 导出与更多模型
 
-修复 DeepSeek / 兼容接口返回的内部检索指令被显示为回答的问题。现在会自动执行检索并整理成正常回答；旧的异常回复会提示重新提问。已有安装版关闭后直接安装新版本，聊天数据和模型配置继续保留。
+新增 ChatLab 标准 JSON 与本地附件导出，可设置单附件大小上限；新增 Claude 原生 API、OpenAI 和自定义 Base URL。继续保留 Markdown 排版、原文引用和 DeepSeek 检索兼容。已有安装版关闭后直接安装新版本，聊天数据和模型配置继续保留。
 
 ## ✨ 一条连续的使用流程
 
@@ -61,11 +61,14 @@
 | **所选聊天自动准备** | 读取对应消息分库与已提交日志，自动交给 ChatLab 分析 |
 | **客观统计** | 消息总数、发言人数、活跃日期、时段分布和发言排行 |
 | **范围与原文搜索** | 全部记录、最近 30 / 90 天、自定义日期；关键词查找与分页浏览 |
-| **围绕聊天提问** | 支持 DeepSeek、其他兼容接口与本地 Ollama，按需检索当前会话 |
+| **围绕聊天提问** | 支持 DeepSeek、OpenAI、Claude、其他兼容接口与本地 Ollama，按需检索当前会话 |
 | **证据可核对** | 回答中的有效引用可点击，展开附近原文，区分统计、原话与推断 |
 | **Markdown 排版** | 标题、列表、表格、引用、代码块、链接与一键复制代码 |
 | **本地问答与报告** | 按会话保存问答历史，导出包含原始 Markdown 和证据的报告 |
 | **已有记录兼容** | 可额外导入 EchoTrace / WeFlow / ChatLab 的 JSON / JSONL 记录 |
+| **ChatLab JSON 导出** | 选中聊天后直接导出标准 `chatlab.json`，同时整理本机已有的图片、表情、语音、视频和文件 |
+| **附件大小控制** | 导出前设置单个附件上限；超限、缺失和加密原文件写入 `export-manifest.json` |
+| **多种模型服务** | 原生支持 OpenAI、Claude；也支持 DeepSeek、Ollama 和其他兼容接口，并可自定义 Base URL |
 
 ### 你可以这样问
 
@@ -79,9 +82,9 @@
 
 ### 1. 下载并安装
 
-下载 **[ChatScope-Setup-0.1.2-x64.exe](https://github.com/wyykkk-sudo/ChatScope/releases/download/v0.1.2/ChatScope-Setup-0.1.2-x64.exe)**，双击后按提示安装。安装版为当前 Windows 用户安装，无需管理员权限，并提供桌面和开始菜单入口。
+下载 **[ChatScope-Setup-0.2.0-x64.exe](https://github.com/wyykkk-sudo/ChatScope/releases/download/v0.2.0/ChatScope-Setup-0.2.0-x64.exe)**，双击后按提示安装。安装版为当前 Windows 用户安装，无需管理员权限，并提供桌面和开始菜单入口。
 
-也可从 [v0.1.2 Release](https://github.com/wyykkk-sudo/ChatScope/releases/tag/v0.1.2) 下载免安装 ZIP，将整个压缩包解压到可写文件夹。
+也可从 [v0.2.0 Release](https://github.com/wyykkk-sudo/ChatScope/releases/tag/v0.2.0) 下载免安装 ZIP，将整个压缩包解压到可写文件夹。
 
 两种版本均内置运行环境，不需要另行安装 Node.js、Python、ChatLab 或导出工具。安装、升级与数据保留说明见 [安装指南](docs/INSTALLATION.md)。
 
@@ -102,12 +105,18 @@
 | 服务 | 接口地址 | 模型名称 |
 | --- | --- | --- |
 | DeepSeek | `https://api.deepseek.com/v1` | `deepseek-chat` |
+| OpenAI | `https://api.openai.com/v1` | 例如 `gpt-4.1-mini` |
+| Claude | `https://api.anthropic.com` | 例如 `claude-sonnet-4-5` |
 | 其他兼容接口 | 服务商提供的 HTTPS 地址 | 服务商提供的模型名称 |
 | 本地 Ollama | `http://127.0.0.1:11434/v1` | 本机已安装的模型，如 `qwen3:8b` |
 
-接口需支持 **Chat Completions 与工具调用**。Ollama 和对应模型需要自行准备；模型调用费用由服务商收取。
+Claude 使用原生 **Messages API**，其余服务使用 **Chat Completions**；模型需支持工具调用。Ollama 和对应模型需要自行准备；模型调用费用由服务商收取。
 
 **配置只需保存一次。之后选择会话，就可以直接提问。**
+
+### 导出 ChatLab 文件
+
+选中好友或群聊后，点击右上角 **导出 ChatLab**，填写单个附件最大大小并选择保存目录。软件会生成一个独立文件夹，包含 `chatlab.json`、`attachments/`、`export-manifest.json` 和说明文件；在 ChatLab 中选择 `chatlab.json` 导入消息，附件文件夹请一并保留。导出只读取电脑上已有的本地附件，不联网下载。微信新式加密 DAT 会原样保留并标记，SILK 语音需要兼容播放器。
 
 ## 📝 Markdown 回复
 
@@ -209,9 +218,11 @@ flowchart LR
 <details>
 <summary><b>AI 回复失败怎么办？</b></summary>
 
-检查服务地址、模型名称、API Key、额度及工具调用支持情况。云端服务需在设置中允许发送必要片段。地址可以是 `/v1` 基址或完整 `/chat/completions` 地址；远程接口需要 HTTPS。
+检查服务地址、模型名称、API Key、额度及工具调用支持情况。云端服务需在设置中允许发送必要片段。OpenAI 兼容接口地址可填 `/v1` 基址或完整 `/chat/completions` 地址；Claude 可填根地址、`/v1` 或完整 `/v1/messages` 地址。远程接口需要 HTTPS。
 
 </details>
+
+本版导出与模型协议验证见 [测试结果](docs/export-provider-verification.json)，安装与升级验证见 [安装验证](docs/installer-verification.json)。测试使用虚构聊天和本地模拟 API，未调用真实云端模型。
 
 ## 🛠 开发与源码
 

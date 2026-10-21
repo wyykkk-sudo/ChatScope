@@ -1,10 +1,11 @@
 """Reader contract tests with generated encrypted databases; no personal messages."""
-import hashlib, importlib.util, json, os
+import hashlib, importlib.util, json, os, sys
 from pathlib import Path
 import zstandard
 from sqlcipher3 import dbapi2 as sql
 
 base = Path(__file__).resolve().parent
+sys.path.insert(0, str(base / 'chatscope-src'))
 spec = importlib.util.spec_from_file_location('reader', base / 'chatscope-src' / 'reader.py')
 r = importlib.util.module_from_spec(spec); spec.loader.exec_module(r)
 root = base / 'qa-reader' / ('fixture_' + os.urandom(4).hex()) / 'wxid_fixture_abcd' / 'db_storage'

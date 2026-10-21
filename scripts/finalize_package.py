@@ -41,7 +41,7 @@ with zipfile.ZipFile(portable,'w',zipfile.ZIP_DEFLATED,compresslevel=5) as z:
             z.write(p,'ChatScope/'+str(rel))
 with zipfile.ZipFile(portable) as z:
     assert not any(n.startswith('ChatScope/data/') for n in z.namelist())
-report={'application':'ChatScope 0.1.2','platform':'Windows x64','chatlab':'0.37.5','electron':'39.2.7','node':'24.16.0','python':'3.12.10','markdown':{'marked':'18.1.1','dompurify':'3.4.17'},'tests':{}}
+report={'application':'ChatScope 0.2.0','platform':'Windows x64','chatlab':'0.37.5','electron':'39.2.7','node':'24.16.0','python':'3.12.10','markdown':{'marked':'18.1.1','dompurify':'3.4.17'},'tests':{}}
 for name in ['engine-test-result.json','ui-test-result.json','portable-test-result.json','packaged-window-test-result.json']:
     report['tests'][name]=json.loads((root/name).read_text())
 report['cloudModelTested']=False

@@ -1,6 +1,6 @@
 {
   "name": "chatscope",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "ChatScope - 本地微信读取、ChatLab 分析与模型问答",
   "main": "main.cjs",
   "author": "ChatScope contributors",

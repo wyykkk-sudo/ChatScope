@@ -1,9 +1,10 @@
 const fs=require('node:fs');
 const path=require('node:path');
 const {createPackage}=require('./runtime/node_modules/@electron/asar/lib/asar.js');
-const root=__dirname, src=path.join(root,'chatscope-src'), out=path.resolve(root,'../outputs/ChatScope');
+const root=__dirname, src=path.join(root,'chatscope-src'), out=path.resolve(process.env.CHATSCOPE_PACKAGE_OUT || path.join(root,'../outputs/ChatScope'));
 const cp=(a,b)=>fs.cpSync(a,b,{recursive:true});
 (async()=>{
+  if(fs.existsSync(path.join(out,'data'))) throw new Error('Choose a clean output directory; existing application data must be preserved.');
   fs.mkdirSync(out,{recursive:true});
   cp(path.join(root,'runtime/node_modules/electron/dist'),out);
   cp(path.join(root,'runtime/node_modules/electron/dist/LICENSE'),path.join(out,'LICENSE.electron.txt'));
@@ -11,7 +12,7 @@ const cp=(a,b)=>fs.cpSync(a,b,{recursive:true});
   const runtime=path.join(out,'resources/chatscope-runtime');
   cp(path.join(root,'ship-runtime'),runtime);
   cp(path.join(root,'runtime/node.exe'),path.join(runtime,'node.exe'));
-  cp(path.join(root,'reader-build/ChatScopeReader'),path.join(runtime,'reader'));
+  cp(process.env.CHATSCOPE_READER_BUILD || path.join(root,'reader-build/ChatScopeReader'),path.join(runtime,'reader'));
   for(const f of ['README.md','LICENSE','THIRD-PARTY-NOTICES.md']) cp(path.join(src,f),path.join(out,f));
   cp(path.join(root,'chatlab-upstream/LICENSE'),path.join(out,'licenses/ChatLab-AGPL-3.0.txt'));
   for(const name of fs.readdirSync(path.join(root,'python-libs'))){

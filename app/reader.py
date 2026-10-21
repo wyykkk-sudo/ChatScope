@@ -21,6 +21,7 @@ import xml.etree.ElementTree as ET
 import psutil
 import zstandard
 from sqlcipher3 import dbapi2 as sqlite
+from media_export import AttachmentExporter
 
 PAGE = 4096
 KEY_PATTERN = re.compile(rb"x'([0-9a-fA-F]{64,192})'")
@@ -118,7 +119,7 @@ def key_valid(key, page):
 
 
 def relevant_files(root):
-    return sorted(p for p in root.rglob("*.db") if p.name in ("session.db", "contact.db") or re.fullmatch(r"message_\d+\.db", p.name))
+    return sorted(p for p in root.rglob("*.db") if p.name in ("session.db", "contact.db") or re.fullmatch(r"(?:message|media)_\d+\.db", p.name) or p.name == "message_resource.db")
 
 
 class MBI(ctypes.Structure):
@@ -384,12 +385,14 @@ def connect(account, cache):
         con.close()
 
 
-def normalize(row, names, owner, session, shard):
+def normalize(row, names, owner, session, shard, media=None):
     local_type = int(field(row, "local_type", "type", default=1)) & 0xFFFFFFFF
-    content = text(field(row, "message_content", "WCDB_CT_message_content", "content"))
+    raw_content = text(field(row, "message_content", "WCDB_CT_message_content", "content"))
+    content = raw_content
     compressed = field(row, "compress_content", "WCDB_CT_compress_content")
     if compressed:
         content = text(compressed) or content
+    raw_content = content
     sender = text(field(row, "sender_username")) or names.get(int(field(row, "real_sender_id", default=0)), "")
     prefix = re.match(r"^([^\s:]{1,128}):\n", content)
     if session.endswith("@chatroom") and prefix:
@@ -414,10 +417,21 @@ def normalize(row, names, owner, session, shard):
     server = field(row, "server_id", "msg_svr_id", default=0)
     local = int(field(row, "local_id", default=0))
     uid = str(server) if server and str(server) != "0" else f"{shard}:{local}:{ts}:{sender}"
-    return {"sender": sender, "accountName": STATE["names"].get(sender, "我" if sender == owner else sender), "timestamp": ts, "type": msg_type, "content": content, "platformMessageId": uid}
+    message = {"sender": sender, "accountName": STATE["names"].get(sender, "我" if sender == owner else sender), "timestamp": ts, "type": msg_type, "content": content, "platformMessageId": uid}
+    if media:
+        attachments = media.for_message(row, raw_content, message)
+        if attachments:
+            message["attachments"] = attachments
+            links = ["[附件](" + item["path"] + ")" for item in attachments if item.get("path")]
+            if links:
+                message["content"] += "\n" + " ".join(links)
+    return message
 
 
-def export_chat(session_id, output):
+
+def export_chat(session_id, output, attachment_root=None, max_attachment_bytes=50 * 1024 * 1024, format="jsonl"):
+    if format not in ("json", "jsonl"):
+        raise ValueError("仅支持 JSON 或 JSONL 导出。")
     if STATE["root"] is None or not any(s["id"] == session_id for s in STATE["sessions"]):
         raise RuntimeError("请先连接微信并选择一个会话。")
     root = STATE["root"]
@@ -426,6 +440,7 @@ def export_chat(session_id, output):
     table = "Msg_" + hashlib.md5(session_id.encode()).hexdigest()
     files = [p for p in relevant_files(root) if re.fullmatch(r"message_\d+\.db", p.name)]
     missing = []
+    media = AttachmentExporter(root, attachment_root, max_attachment_bytes, session_id, snapshot, progress) if attachment_root else None
     conns, iterators, members = [], [], {}
     progress("正在准备所选聊天，自动导入分析引擎…")
     try:
@@ -444,13 +459,13 @@ def export_chat(session_id, output):
             rows = con.execute('SELECT * FROM "' + found[0] + '" ORDER BY create_time, local_id')
             def messages(cursor=rows, names=mapping, shard=source.stem):
                 for row in cursor:
-                    yield normalize(row, names, owner, session_id, shard)
+                    yield normalize(row, names, owner, session_id, shard, media)
             iterators.append(messages())
         if missing:
             raise RuntimeError(f"有 {len(missing)} 个消息分库尚未加载，暂不能确认完整记录。请在微信里点开所选聊天，然后点击重新连接。")
         if not iterators:
             raise RuntimeError("所选会话暂无可读取的本地消息。请确认记录已同步到电脑。")
-        path = Path(output)
+        path = Path(output).with_suffix(".jsonl.partial") if format == "json" else Path(output)
         path.parent.mkdir(parents=True, exist_ok=True)
         meta = {"name": entry["name"], "platform": "wechat", "type": entry["type"], "ownerId": owner}
         if entry["type"] == "group":
@@ -469,10 +484,45 @@ def export_chat(session_id, output):
         if count == 0:
             path.unlink(missing_ok=True)
             raise RuntimeError("这个会话没有本地消息。")
-        return {"file": str(path), "messageCount": count, "name": entry["name"]}
+        if format == "json":
+            jsonl_to_json(path, Path(output))
+            path.unlink()
+            path = Path(output)
+        media_counts = media.finish() if media else {}
+        return {"file": str(path), "messageCount": count, "name": entry["name"], "attachments": media_counts}
     finally:
+        if media:
+            media.close()
         for con in conns:
             con.close()
+
+
+def jsonl_to_json(source, destination):
+    """Write standard ChatLab JSON without retaining all messages in memory."""
+    members = {}
+    with source.open(encoding="utf-8") as lines:
+        header = json.loads(next(lines))
+        for line in lines:
+            item = json.loads(line)
+            if item.get("_type") == "member":
+                item.pop("_type", None)
+                members[item["platformId"]] = item
+    temporary = destination.with_suffix(destination.suffix + '.partial')
+    with temporary.open("x", encoding="utf-8") as output, source.open(encoding="utf-8") as lines:
+        output.write('{"chatlab":' + json.dumps(header["chatlab"], ensure_ascii=False) + ',"meta":' + json.dumps(header["meta"], ensure_ascii=False))
+        output.write(',"members":' + json.dumps(list(members.values()), ensure_ascii=False) + ',"messages":[')
+        first = True
+        for line in lines:
+            item = json.loads(line)
+            if item.get("_type") != "message":
+                continue
+            item.pop("_type", None)
+            if not first:
+                output.write(',')
+            output.write(json.dumps(item, ensure_ascii=False))
+            first = False
+        output.write(']}')
+    temporary.replace(destination)
 
 
 def serve():
@@ -489,7 +539,7 @@ def serve():
             elif action == "connect":
                 result = connect(req["account"], req["cache"])
             elif action == "export":
-                result = export_chat(req["session"], req["output"])
+                result = export_chat(req["session"], req["output"], req.get("attachmentRoot"), req.get("maxAttachmentBytes", 50 * 1024 * 1024), req.get("format", "jsonl"))
             else:
                 raise ValueError("未知操作")
             emit({"id": req.get("id"), "success": True, "data": result})

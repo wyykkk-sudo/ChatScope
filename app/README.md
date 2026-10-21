@@ -1,6 +1,6 @@
 # ChatScope · 微信聊天分析
 
-Windows 免安装测试版 0.1.2。内置微信 4.x 读取模块、ChatLab 分析引擎和兼容接口模型问答。
+Windows 免安装测试版 0.2.0。内置微信 4.x 读取模块、ChatLab 分析引擎和DeepSeek、OpenAI、Claude 与兼容接口模型问答。
 
 ## 开始使用
 
@@ -9,7 +9,7 @@ Windows 免安装测试版 0.1.2。内置微信 4.x 读取模块、ChatLab 分�
 3. 点击左侧会话。软件自动准备该会话的聊天统计、原文搜索和问答，**无需手动导出、转换或导入**。
 4. 首次提问前，在左下角“模型设置”填写 API Key，点击“保存并测试”。后续直接选择聊天、输入问题。
 
-DeepSeek 默认地址为 `https://api.deepseek.com/v1`，模型名为 `deepseek-chat`。其他服务填写其兼容接口地址与模型名；地址可以是 `/v1` 基址或完整 `/chat/completions` 地址。本地 Ollama 使用 `http://127.0.0.1:11434/v1`，填写本机已安装的模型名。
+DeepSeek 默认地址为 `https://api.deepseek.com/v1`，模型名为 `deepseek-chat`。OpenAI 可选 `https://api.openai.com/v1`，Claude 可选 `https://api.anthropic.com`，模型名称可编辑。Claude 使用原生 Messages API，支持根地址、`/v1` 或完整 `/v1/messages` 地址。其他服务填写其兼容接口地址与模型名；地址可以是 `/v1` 基址或完整 `/chat/completions` 地址。本地 Ollama 使用 `http://127.0.0.1:11434/v1`，填写本机已安装的模型名。
 
 如果有多个微信账号，选择正在使用的账号。微信未登录时，软件会定期重试；也可点击左侧 ↻。新增消息后点击 ↻ 重新连接并再次点击对应会话，即可更新分析。
 
@@ -21,6 +21,7 @@ DeepSeek 默认地址为 `https://api.deepseek.com/v1`，模型名为 `deepseek-
 - 按全部记录、最近 30 / 90 天或自定义日期筛选。
 - 大模型围绕当前会话交流，按需检索原文和上下文；点击引用核对证据。
 - 保存模型配置、停止回答、保留分会话问答、导出 Markdown 报告。
+- 选定聊天导出 ChatLab 标准 JSON，并整理本地图片、表情、语音、视频和文件。导出前设置每个附件大小上限，0 表示只导出消息；附清单标注超限、缺失与加密原文件。
 - 模型回复支持 Markdown：标题、粗体、列表、任务清单、引用、表格、链接与代码块；代码可一键复制，原文引用仍可点击核对。
 - 兼容导入已有 EchoTrace / WeFlow / ChatLab 的 JSON / JSONL；附带明确标记的虚构示例记录。
 
@@ -43,7 +44,7 @@ Windows x64、微信 4.x。本机实测自动读取到 379 个会话，其中 49
 - 列表为空：确认使用 Windows 微信 4.x 且已经登录。首次同步后再点击 ↻；自定义位置可点“找不到记录？选择微信数据目录”。
 - 连接失败：让微信和本软件使用相同 Windows 用户与权限，在微信中点开一个聊天，再重新连接。程序会明确提示未能读取的分库，不把不完整读取当作全量结果。
 - 没有原文：所选聊天可能尚未同步到电脑；先在微信查看对应聊天。
-- 模型失败：检查地址、模型名、密钥和余额。支持 OpenAI 兼容的 Chat Completions 与工具调用；服务商需要支持对应能力。
+- 模型失败：检查地址、模型名、密钥和余额。Claude 使用原生 Messages API，其他服务使用 Chat Completions；模型需要支持工具调用。
 - 运行目录不可写：将整个软件文件夹移到你有写入权限的位置后重新启动。
 
 ## 来源与源代码
@@ -51,3 +52,7 @@ Windows x64、微信 4.x。本机实测自动读取到 379 个会话，其中 49
 整合界面、问答层与 Windows 读取器在本项目中开发。没有将缺失的 EchoTrace / WeFlow 私有读取组件伪装成已集成组件。分析功能实际使用开源 [ChatLab](https://github.com/ChatLab/ChatLab) 的官方 CLI 0.37.5，不要求另行安装 ChatLab。
 
 源码压缩包包含本应用源代码、测试和打包脚本，以及 ChatLab 0.37.5 对应源码。第三方许可见 `THIRD-PARTY-NOTICES.md` 及随附许可文件。应用代码使用 MIT；ChatLab 使用 AGPL-3.0。上游源码未经修改。
+
+## ChatLab 导出
+
+选中会话后点击右上角“导出 ChatLab”，设置单附件上限并选择保存位置。导出完成自动打开文件夹，在 ChatLab 中导入 `chatlab.json`。保留 `attachments/` 与 `export-manifest.json`。只复制本机可匹配的附件；新式加密 DAT 原样保留，SILK 语音需要兼容播放器。导出针对所选会话全部本地记录，与页面分析日期范围无关。

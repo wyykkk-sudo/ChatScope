@@ -1,5 +1,53 @@
 {
-  "application": "ChatScope 0.1.2",
+  "application": "ChatScope 0.2.0",
+  "exportAndProviders": {
+    "version": "0.2.0",
+    "nativeExport": {
+      "passed": true,
+      "count": 10,
+      "encryptedWal": true,
+      "selectedChatIsolation": true,
+      "voiceDatabase": true,
+      "resourceDatabase": true,
+      "legacyDatDecoded": true,
+      "encryptedDatRetained": true,
+      "sizeBoundary": true,
+      "zeroLimit": true,
+      "ipcDispatch": true,
+      "compiledReaderIpc": true
+    },
+    "modelAndImportedExport": {
+      "passed": true,
+      "tests": [
+        "native JSON imports into actual ChatLab with all media message types",
+        "imported export streams multiple pages, copies assets, blocks traversal and reimports",
+        "OpenAI custom base URLs, credentials, reasoning limits and real search roundtrip",
+        "Claude native Messages URLs, headers, merged tool results and citations",
+        "Claude tools remain declared when final synthesis disables calls",
+        "key scope and legacy migration; invalid/empty/error responses"
+      ],
+      "cloudApiTested": false,
+      "data": "synthetic fixtures and local protocol servers"
+    },
+    "installedUi": {
+      "passed": true,
+      "archiveLoaded": true,
+      "count": 912,
+      "members": 4,
+      "markdownBundled": true,
+      "dsmlToolRoundTrip": true,
+      "citedAnswerRenders": true,
+      "evidenceOpens": true,
+      "oldMalformedReplyHidden": true,
+      "providerOptions": true,
+      "customBaseUrlPersists": true,
+      "exportDialog": true,
+      "exportSizeValidation": true,
+      "exportIpc": true,
+      "exportCount": 912,
+      "exportSizePersists": true
+    }
+  },
   "modelProtocol": {
     "passed": true,
     "cases": [
@@ -20,7 +68,7 @@
   },
   "installer": {
     "passed": true,
-    "installerVersion": "0.1.2",
+    "installerVersion": "0.2.0",
     "installerCompiler": "Inno Setup 7.1.0 x64",
     "payloadMatchesRelease": true,
     "installedAppLaunches": true,
@@ -29,9 +77,9 @@
     "uninstallRemovesProgram": true,
     "uninstallPreservesData": true,
     "testData": "fictional records and isolated install directory",
-    "bytes": 201149143,
-    "sha256": "8acae820e91f2ccfaedf63375042727a15965c5404342d3908833b09d7f30f20",
-    "upgradeFrom011PreservesDataAndSettings": true,
+    "bytes": 201173414,
+    "sha256": "aed456a6bd1d3af625b16919567aa4f318fd2119139ea76de947f253886087fc",
+    "upgradeFrom012PreservesDataAndSettings": true,
     "dsmlUIRegression": {
       "passed": true,
       "archiveLoaded": true,
@@ -41,7 +89,14 @@
       "dsmlToolRoundTrip": true,
       "citedAnswerRenders": true,
       "evidenceOpens": true,
-      "oldMalformedReplyHidden": true
+      "oldMalformedReplyHidden": true,
+      "providerOptions": true,
+      "customBaseUrlPersists": true,
+      "exportDialog": true,
+      "exportSizeValidation": true,
+      "exportIpc": true,
+      "exportCount": 912,
+      "exportSizePersists": true
     }
   },
   "baselineEngine": {
@@ -56,17 +111,13 @@
   "cloudModelTested": false,
   "privateDataBundled": false,
   "artifacts": {
-    "ChatScope-Setup-0.1.2-x64.exe": {
-      "bytes": 201149143,
-      "sha256": "8acae820e91f2ccfaedf63375042727a15965c5404342d3908833b09d7f30f20"
+    "ChatScope-Setup-0.2.0-x64.exe": {
+      "bytes": 201173414,
+      "sha256": "aed456a6bd1d3af625b16919567aa4f318fd2119139ea76de947f253886087fc"
     },
     "ChatScope-Windows-x64.zip": {
-      "bytes": 236003218,
-      "sha256": "88e63a717139f544788321ba8707bda742779497b76997291312250b6691364b"
-    },
-    "ChatScope-source.zip": {
-      "bytes": 6240135,
-      "sha256": "735b877600b53946d7ebc9cf3d001d6fa4df85beb200020a0e954effe22f5705"
+      "bytes": 236026691,
+      "sha256": "9daf7e0b61976e6e1073e7c6e7686e337df6b612b8387a302244f44aae38d77d"
     }
   }
 }

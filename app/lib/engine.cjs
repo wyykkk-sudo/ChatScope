@@ -5,6 +5,7 @@ const net = require('node:net');
 const { spawn } = require('node:child_process');
 const { EventEmitter } = require('node:events');
 const { hasToolMarkup, normalizeMessage } = require('../web/tool-protocol.js');
+const { exportImported } = require('./chat-export.cjs');
 
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 const quote = value => "'" + String(value).replaceAll("'", "''") + "'";
@@ -112,7 +113,7 @@ class Engine extends EventEmitter {
     this.ensureHelper();
     const id = ++this.sequence;
     return new Promise((resolve, reject) => {
-      const timer = setTimeout(() => { this.pending.delete(id); this.helper.kill(); reject(new Error('连接微信超时，请先打开微信中的一个聊天，再重新连接。')); }, 240000);
+      const timer = setTimeout(() => { this.pending.delete(id); this.helper.kill(); reject(new Error(action === 'export' ? '导出超时，原始聊天未修改。请重新连接后重试。' : '连接微信超时，请先打开微信中的一个聊天，再重新连接。')); }, action === 'export' ? 900000 : 240000);
       this.pending.set(id, { resolve, reject, timer });
       this.helper.stdin.write(JSON.stringify({ id, action, ...fields }) + '\n', error => { if (error) { clearTimeout(timer); this.pending.delete(id); reject(new Error('微信读取模块无法启动。')); } });
     });
@@ -157,6 +158,13 @@ class Engine extends EventEmitter {
         } catch (error) { reject(new Error(error instanceof SyntaxError ? '导入失败，请检查导出文件格式。' : error.message)); }
       });
     });
+    // Remember only a local source directory so re-export can copy relative assets.
+    const importedId = result.data?.sessionId;
+    if (!forcedId && importedId && !this.sources.has(importedId) && this.syncState[importedId]?.source !== 'wechat') {
+      const previous = this.syncState[importedId] || {};
+      this.syncState[importedId] = { ...previous, importDirectory: previous.importDirectory || path.dirname(file), source: 'file' };
+      fs.writeFileSync(this.syncStateFile, JSON.stringify(this.syncState));
+    }
     this.notify('聊天记录已准备好');
     return result;
   }
@@ -178,6 +186,27 @@ class Engine extends EventEmitter {
     })();
     this.syncJobs.set(id, job);
     try { return await job; } finally { this.syncJobs.delete(id); }
+  }
+  async exportChat(id, parent, maxAttachmentBytes = 50 * 1024 * 1024) {
+    if (this.exporting) throw new Error('正在导出聊天，请稍候。');
+    const cap = Number(maxAttachmentBytes);
+    if (!Number.isSafeInteger(cap) || cap < 0 || cap > 2 * 1024 * 1024 * 1024) throw new Error('附件大小需在 0–2048 MB 之间。');
+    this.exporting = true;
+    let output;
+    try {
+    const session = (await this.sessions()).find(item => item.id === id);
+    if (!session) throw new Error('请先选择一个聊天。');
+    const safeName = String(session.name || id).replace(/[<>:"/\\|?*\x00-\x1f]/g, '_').trim().slice(0, 80) || '聊天记录';
+    output = fs.mkdtempSync(path.join(parent, `${safeName}-${new Date().toISOString().slice(0, 10)}-`));
+    const source = this.sources.get(id);
+    const result = source ? await this.reader('export', { session: source.username, output: path.join(output, 'chatlab.json'), format: 'json', attachmentRoot: path.join(output, 'attachments'), maxAttachmentBytes: cap }) : await exportImported(this, session, output, cap);
+    fs.mkdirSync(path.join(output, 'attachments'), { recursive: true });
+    fs.writeFileSync(path.join(output, 'README.txt'), `ChatScope ChatLab 导出\n\n在 ChatLab 中导入 chatlab.json。\nattachments/ 保存本地可找到的图片、表情、语音、视频和文件；请整体保留本文件夹。\nexport-manifest.json 逐项记录 copied（已复制）、encrypted_original（保留微信加密原文件）、skipped（超出单附件大小上限）和 missing（未下载或未能匹配）。\n0 MB 表示不复制附件。每个文件上限 ${cap} 字节。\n微信新式加密 DAT 保留原格式，不能直接查看；语音可能为 SILK 格式，需要兼容播放器。ChatLab 可分析消息，但不保证播放附件。\n仅处理本机已有附件，不下载云端附件。导出包含原始个人聊天，请自行妥善保存。\n`);
+    return { ...result, directory: output, maxAttachmentBytes: cap };
+    } catch (error) {
+      if (output) fs.writeFileSync(path.join(output, 'EXPORT-INCOMPLETE.txt'), '此次导出未完成，请勿将其中的 JSON 当作完整备份。原始记录未修改。\n');
+      throw error;
+    } finally { this.exporting = false; }
   }
   range(filter = {}) {
     const start = Number(filter.start) || 0;
@@ -214,8 +243,10 @@ class Engine extends EventEmitter {
     const url = new URL(values.endpoint);
     const local = ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname);
     if (url.username || url.password || url.search || url.hash || !(url.protocol === 'https:' || (local && url.protocol === 'http:'))) throw new Error('服务地址需要 HTTPS；本地模型可以使用 HTTP。');
-    if (!String(values.model).trim()) throw new Error('请填写模型名称。');
-    this.settings = { endpoint: url.href.replace(/\/$/, ''), model: String(values.model).trim(), redact: values.redact !== false, cloudAllowed: values.cloudAllowed === true, key: values.key ? this.protect(String(values.key).trim()) : this.settings.key };
+    if (!String(values.model || '').trim()) throw new Error('请填写模型名称。');
+    const provider = ['deepseek', 'openai', 'claude', 'ollama', 'compatible'].includes(values.provider) ? values.provider : (this.settings.provider || 'deepseek');
+    const sameKeyScope = (!this.settings.provider || provider === this.settings.provider) && new URL(this.settings.endpoint).origin === url.origin;
+    this.settings = { provider, endpoint: url.href.replace(/\/$/, ''), model: String(values.model).trim(), redact: values.redact !== false, cloudAllowed: values.cloudAllowed === true, key: values.key?.trim() ? this.protect(String(values.key).trim()) : (sameKeyScope ? this.settings.key : undefined) };
     fs.writeFileSync(this.settingsFile + '.tmp', JSON.stringify(this.settings));
     fs.renameSync(this.settingsFile + '.tmp', this.settingsFile);
     return this.publicSettings();
@@ -225,25 +256,66 @@ class Engine extends EventEmitter {
   }
   evidence(rows) { return rows.map(r => ({ id: r.id, timestamp: r.timestamp, sender: this.redact(r.name), content: this.redact(String(r.content || `[消息类型 ${r.type}]`).slice(0, MAX_CONTENT)) })); }
   async completion(messages, tools, signal, toolChoice = 'auto') {
+    const provider = this.settings.provider || (this.settings.endpoint.includes('anthropic') ? 'claude' : 'deepseek');
     const local = ['localhost', '127.0.0.1', '[::1]'].includes(new URL(this.settings.endpoint).hostname);
     if (!local && !this.settings.cloudAllowed) throw new Error('请在模型设置里允许将所选聊天的必要片段发送给模型服务。');
     if (!local && !this.settings.key) throw new Error('请先填写模型 API Key。');
-    const endpoint = this.settings.endpoint.replace(/\/chat\/completions\/?$/, '') + '/chat/completions';
     const key = this.settings.key ? this.reveal(this.settings.key) : '';
-    const response = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json', ...(key ? { Authorization: 'Bearer ' + key } : {}) }, body: JSON.stringify({ model: this.settings.model, messages, stream: false, temperature: 0.3, max_tokens: 2400, ...(tools ? { tools, tool_choice: toolChoice } : {}) }), signal: AbortSignal.any([signal, AbortSignal.timeout(120000)]) });
+    let endpoint, headers, payload;
+    if (provider === 'claude') {
+      const base = this.settings.endpoint.replace(/\/$/, '');
+      endpoint = /\/messages$/.test(base) ? base : /\/v1$/.test(base) ? base + '/messages' : base + '/v1/messages';
+      const system = messages.filter(message => message.role === 'system').map(message => String(message.content || '')).join('\n\n');
+      const converted = [];
+      for (const message of messages.filter(item => item.role !== 'system')) {
+        if (message.role === 'tool') converted.push({ role: 'user', content: [{ type: 'tool_result', tool_use_id: message.tool_call_id, content: message.content }] });
+        else if (message.role === 'assistant' && Array.isArray(message.tool_calls) && message.tool_calls.length) {
+          const blocks = [];
+          if (message.content) blocks.push({ type: 'text', text: message.content });
+          for (const call of message.tool_calls) blocks.push({ type: 'tool_use', id: call.id, name: call.function.name, input: JSON.parse(call.function.arguments || '{}') });
+          converted.push({ role: 'assistant', content: blocks });
+        } else converted.push({ role: message.role === 'assistant' ? 'assistant' : 'user', content: [{ type: 'text', text: String(message.content || '（无正文）') }] });
+      }
+      // Anthropic tool_result blocks must precede text in the next user turn.
+      const merged = [];
+      for (const turn of converted) {
+        if (merged.at(-1)?.role === turn.role) merged.at(-1).content.push(...turn.content);
+        else merged.push({ role: turn.role, content: [...turn.content] });
+      }
+      const claudeTools = tools ? tools.map(tool => ({ name: tool.function.name, description: tool.function.description, input_schema: tool.function.parameters })) : undefined;
+      payload = { model: this.settings.model, system: system || undefined, messages: merged, max_tokens: 2400, ...(claudeTools ? { tools: claudeTools, tool_choice: { type: toolChoice === 'none' ? 'none' : toolChoice === 'auto' ? 'auto' : 'any' } } : {}) };
+      headers = { 'Content-Type': 'application/json', 'anthropic-version': '2023-06-01', ...(key ? { 'x-api-key': key } : {}) };
+    } else {
+      let base = this.settings.endpoint.replace(/\/chat\/completions\/?$/, '');
+      if (provider === 'openai' && new URL(base).pathname === '/') base += '/v1';
+      endpoint = base + '/chat/completions';
+      const reasoningModel = /^(?:o[134](?:-|$)|gpt-5(?:[.-]|$))/.test(this.settings.model);
+      payload = { model: this.settings.model, messages, stream: false, ...(!reasoningModel ? { temperature: 0.3 } : {}), ...(provider === 'openai' ? { max_completion_tokens: reasoningModel ? 8000 : 2400 } : { max_tokens: 2400 }), ...(tools ? { tools, tool_choice: toolChoice } : {}) };
+      headers = { 'Content-Type': 'application/json', ...(key ? { Authorization: 'Bearer ' + key } : {}) };
+    }
+    const response = await fetch(endpoint, { method: 'POST', headers, body: JSON.stringify(payload), signal: AbortSignal.any([signal, AbortSignal.timeout(120000)]) });
     if (!response.ok) {
       if (response.status === 401 || response.status === 403) throw new Error('模型认证失败，请检查 API Key 和权限。');
       if (response.status === 429) throw new Error('模型服务限流或额度不足，请稍后再试。');
       throw new Error(`模型服务返回 ${response.status}，请检查地址和模型名称。`);
     }
     const result = await response.json();
+    if (provider === 'claude') {
+      const blocks = Array.isArray(result.content) ? result.content : [];
+      if (!blocks.some(block => ['text', 'tool_use'].includes(block.type))) throw new Error('Claude 未返回正文或工具调用，请检查模型名称和接口协议。');
+      const text = blocks.filter(block => block.type === 'text').map(block => block.text).join('\n') || null;
+      const tool_calls = blocks.filter(block => block.type === 'tool_use').map(block => ({ id: block.id, type: 'function', function: { name: block.name, arguments: JSON.stringify(block.input || {}) } }));
+      const reasoning = blocks.filter(block => block.type === 'thinking').map(block => block.thinking).join('\n');
+      return normalizeMessage({ role: 'assistant', content: text, tool_calls, ...(reasoning ? { reasoning_content: reasoning } : {}) });
+    }
     const message = result.choices?.[0]?.message;
     if (!message) throw new Error('模型服务未返回可识别的回复。');
     return normalizeMessage(message);
   }
   async testModel() {
     const controller = new AbortController();
-    await this.completion([{ role: 'user', content: '只回复 OK' }], null, controller.signal);
+    const reply = await this.completion([{ role: 'user', content: '只回复 OK' }], null, controller.signal);
+    if (!reply.content?.trim() || reply.protocolError) throw new Error('模型未返回有效的测试回复，请检查接口协议与模型名称。');
     return { success: true };
   }
   async ask({ session, question, filter, history = [] }) {
